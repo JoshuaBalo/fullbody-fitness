@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Routine - FullBody Fitness</title>
+
+  <!--Citation:
+  Bootstrap 5.3.3 framework (Bootstrap Team, 2024)
+  -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="css/styles.css">
+  <script>
+    // Apply the saved theme before the page paints, so there is no light flash in dark mode
+    (function () {
+      try {
+        var saved = localStorage.getItem("fullbodyTheme");
+        var theme = saved || (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-bs-theme", theme);
+      } catch (e) {
+        document.documentElement.setAttribute("data-bs-theme", "light");
+      }
+    })();
+  </script>
+</head>
+
+<body>
+
+  <header id="banner">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div class="container">
+        <a class="navbar-brand fw-bold" href="index.html">FullBody Fitness</a>
+
+        <button class="btn btn-outline-light btn-sm ms-auto me-2" type="button" id="themeToggleBtn" aria-label="Toggle dark mode">🌙 Dark</button>
+
+        <button class="navbar-toggler" type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#fitnessNav"
+          aria-controls="fitnessNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="fitnessNav">
+          <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link" href="index.html">Exercises</a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="routine.html">Routine</a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link" href="progress.html">Progress</a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link" href="about.html">About</a>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+    </nav>
+  </header>
+
+  <main id="pg-main-content" class="container my-5">
+
+    <!-- Routine builder -->
+    <section id="routineSection">
+      <h1 class="h3 fw-bold mb-2">Build a Routine</h1>
+      <p class="text-muted mb-4">Turn your favourites into a plan. Add exercises from the <a href="index.html">Exercises page</a>, set your sets, reps and rest, then save it and work through it. Routines are saved in your browser, so they are still there after you reload the page.</p>
+
+      <div class="row g-4">
+        <div class="col-12 col-lg-7">
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <label for="routineNameInput" class="form-label fw-bold">Routine name</label>
+              <div class="input-group mb-3">
+                <input type="text" id="routineNameInput" class="form-control" placeholder="e.g. Full Body - Monday" aria-label="Routine name">
+              </div>
+
+              <label for="routineDayInput" class="form-label fw-bold">Day</label>
+              <select id="routineDayInput" class="form-select mb-3" aria-label="Routine day">
+                <option value="">No day assigned</option>
+                <option>Monday</option>
+                <option>Tuesday</option>
+                <option>Wednesday</option>
+                <option>Thursday</option>
+                <option>Friday</option>
+                <option>Saturday</option>
+                <option>Sunday</option>
+                <option>Push day</option>
+                <option>Pull day</option>
+                <option>Legs day</option>
+              </select>
+
+              <div id="draftContainer">
+                <p class="text-muted" id="emptyDraftMsg">No exercises in this routine yet. Use the "Add to Routine" button on any exercise card, or on a favourite, to start one.</p>
+              </div>
+
+              <p class="text-muted small mb-3" id="draftSummary"></p>
+
+              <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-success" type="button" id="saveRoutineBtn">Save Routine</button>
+                <button class="btn btn-primary" type="button" id="startDraftBtn">Start Workout</button>
+                <button class="btn btn-outline-secondary" type="button" id="clearDraftBtn">Clear</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Workout mode -->
+          <div id="workoutSection" class="card shadow-sm mt-4 d-none">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start gap-3">
+                <div>
+                  <h3 class="h5 fw-bold mb-1" id="workoutTitle">Workout</h3>
+                  <p class="text-muted small mb-0" id="workoutProgressText"></p>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary" type="button" id="closeWorkoutBtn">Close</button>
+              </div>
+              <div class="progress my-3" role="progressbar" aria-label="Workout progress">
+                <div class="progress-bar bg-success" id="workoutProgressBar" style="width: 0%"></div>
+              </div>
+              <div id="workoutContainer"></div>
+              <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
+                <button class="btn btn-outline-primary btn-sm" type="button" id="restTimerBtn">Start 90s rest</button>
+                <span class="fw-bold" id="restTimerText"></span>
+                <button class="btn btn-success btn-sm ms-auto" type="button" id="finishWorkoutBtn">Finish Workout</button>
+              </div>
+              <p class="text-muted small mt-2 mb-0" id="workoutDoneMsg"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-5">
+          <div class="card shadow-sm mb-4">
+            <div class="card-body">
+              <h3 class="h5 fw-bold mb-2">Start from a template</h3>
+              <p class="text-muted small">Pick one to fill the builder above. You can change the sets, reps, rest or exercises before you save it.</p>
+              <div class="d-grid gap-2">
+                <button class="btn btn-outline-primary text-start" type="button" onclick="applyTemplate('fullbody')">
+                  <span class="fw-bold">Full Body Beginner</span><br>
+                  <span class="small text-muted">Squat, push, row, crunch and curl. One of everything, 3 sets each.</span>
+                </button>
+                <button class="btn btn-outline-primary text-start" type="button" onclick="applyTemplate('pushpulllegs')">
+                  <span class="fw-bold">Push / Pull / Legs</span><br>
+                  <span class="small text-muted">A push, a pull and a leg movement. A simple split you can repeat.</span>
+                </button>
+                <button class="btn btn-outline-primary text-start" type="button" onclick="applyTemplate('upperlower')">
+                  <span class="fw-bold">Upper / Lower</span><br>
+                  <span class="small text-muted">Upper-body pressing and pulling, then legs and calves.</span>
+                </button>
+                <button class="btn btn-success text-start" type="button" onclick="createPushPullLegsSplit()">
+                  <span class="fw-bold">Create Push / Pull / Legs split</span><br>
+                  <span class="small">Saves three separate routines at once: one Push day, one Pull day, one Legs day.</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h3 class="h5 fw-bold mb-2">Saved Routines</h3>
+              <div id="savedRoutinesContainer">
+                <p class="text-muted" id="emptyRoutinesMsg">No saved routines yet.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="pg-footer" class="bg-dark text-white text-center py-4 mt-auto">
+    <p class="mb-0">&copy; 2026 CSCI 2170 | FullBody Fitness </p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <script src="js/app.js"></script>
+</body>
+
+</html>

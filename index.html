@@ -50,19 +50,19 @@
         <div class="collapse navbar-collapse" id="fitnessNav">
           <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
             <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="#pg-main-content">Home</a>
+              <a class="nav-link active" aria-current="page" href="index.html">Exercises</a>
             </li>
 
             <li class="nav-item">
-              <a class="nav-link" href="#routineSection">Routine</a>
+              <a class="nav-link" href="routine.html">Routine</a>
             </li>
 
             <li class="nav-item">
-              <a class="nav-link" href="#progressSection">Progress</a>
+              <a class="nav-link" href="progress.html">Progress</a>
             </li>
 
             <li class="nav-item">
-              <a class="nav-link" href="#aboutSection">About</a>
+              <a class="nav-link" href="about.html">About</a>
             </li>
           </ul>
         </div>
@@ -90,215 +90,20 @@
       </div>
     </section>
 
+    <div id="routineAddedToast" class="alert alert-success text-center d-none" role="alert">
+      Added to your routine. <a href="routine.html" class="alert-link">View Routine</a>
+    </div>
+
     <section id="errorAlert" class="alert alert-danger text-center d-none" role="alert">
     </section>
 
     <section class="row g-4" id="exerciseContainer">
     </section>
 
-    <!-- Routine builder -->
-    <section id="routineSection" class="mt-5 pt-5 border-top">
-      <h2 class="h3 fw-bold mb-2">Build a Routine</h2>
-      <p class="text-muted mb-4">Turn your favourites into a plan. Add exercises below, set your sets, reps and rest, then save it and work through it. Routines are saved in your browser, so they are still there after you reload the page.</p>
-
-      <div class="row g-4">
-        <div class="col-12 col-lg-7">
-          <div class="card shadow-sm">
-            <div class="card-body">
-              <label for="routineNameInput" class="form-label fw-bold">Routine name</label>
-              <div class="input-group mb-3">
-                <input type="text" id="routineNameInput" class="form-control" placeholder="e.g. Full Body - Monday" aria-label="Routine name">
-              </div>
-
-              <label for="routineDayInput" class="form-label fw-bold">Day</label>
-              <select id="routineDayInput" class="form-select mb-3" aria-label="Routine day">
-                <option value="">No day assigned</option>
-                <option>Monday</option>
-                <option>Tuesday</option>
-                <option>Wednesday</option>
-                <option>Thursday</option>
-                <option>Friday</option>
-                <option>Saturday</option>
-                <option>Sunday</option>
-                <option>Push day</option>
-                <option>Pull day</option>
-                <option>Legs day</option>
-              </select>
-
-              <div id="draftContainer">
-                <p class="text-muted" id="emptyDraftMsg">No exercises in this routine yet. Use the "Add to Routine" button on any exercise card, or on a favourite, to start one.</p>
-              </div>
-
-              <p class="text-muted small mb-3" id="draftSummary"></p>
-
-              <div class="d-flex flex-wrap gap-2">
-                <button class="btn btn-success" type="button" id="saveRoutineBtn">Save Routine</button>
-                <button class="btn btn-primary" type="button" id="startDraftBtn">Start Workout</button>
-                <button class="btn btn-outline-secondary" type="button" id="clearDraftBtn">Clear</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Workout mode -->
-          <div id="workoutSection" class="card shadow-sm mt-4 d-none">
-            <div class="card-body">
-              <div class="d-flex justify-content-between align-items-start gap-3">
-                <div>
-                  <h3 class="h5 fw-bold mb-1" id="workoutTitle">Workout</h3>
-                  <p class="text-muted small mb-0" id="workoutProgressText"></p>
-                </div>
-                <button class="btn btn-sm btn-outline-secondary" type="button" id="closeWorkoutBtn">Close</button>
-              </div>
-              <div class="progress my-3" role="progressbar" aria-label="Workout progress">
-                <div class="progress-bar bg-success" id="workoutProgressBar" style="width: 0%"></div>
-              </div>
-              <div id="workoutContainer"></div>
-              <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
-                <button class="btn btn-outline-primary btn-sm" type="button" id="restTimerBtn">Start 90s rest</button>
-                <span class="fw-bold" id="restTimerText"></span>
-                <button class="btn btn-success btn-sm ms-auto" type="button" id="finishWorkoutBtn">Finish Workout</button>
-              </div>
-              <p class="text-muted small mt-2 mb-0" id="workoutDoneMsg"></p>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-12 col-lg-5">
-          <div class="card shadow-sm mb-4">
-            <div class="card-body">
-              <h3 class="h5 fw-bold mb-2">Start from a template</h3>
-              <p class="text-muted small">Pick one to fill the builder above. You can change the sets, reps, rest or exercises before you save it.</p>
-              <div class="d-grid gap-2">
-                <button class="btn btn-outline-primary text-start" type="button" onclick="applyTemplate('fullbody')">
-                  <span class="fw-bold">Full Body Beginner</span><br>
-                  <span class="small text-muted">Squat, push, row, crunch and curl. One of everything, 3 sets each.</span>
-                </button>
-                <button class="btn btn-outline-primary text-start" type="button" onclick="applyTemplate('pushpulllegs')">
-                  <span class="fw-bold">Push / Pull / Legs</span><br>
-                  <span class="small text-muted">A push, a pull and a leg movement. A simple split you can repeat.</span>
-                </button>
-                <button class="btn btn-outline-primary text-start" type="button" onclick="applyTemplate('upperlower')">
-                  <span class="fw-bold">Upper / Lower</span><br>
-                  <span class="small text-muted">Upper-body pressing and pulling, then legs and calves.</span>
-                </button>
-                <button class="btn btn-success text-start" type="button" onclick="createPushPullLegsSplit()">
-                  <span class="fw-bold">Create Push / Pull / Legs split</span><br>
-                  <span class="small">Saves three separate routines at once: one Push day, one Pull day, one Legs day.</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="card shadow-sm">
-            <div class="card-body">
-              <h3 class="h5 fw-bold mb-2">Saved Routines</h3>
-              <div id="savedRoutinesContainer">
-                <p class="text-muted" id="emptyRoutinesMsg">No saved routines yet.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <section id="favouritesSection" class="mt-5 pt-5 border-top">
       <h2 class="h3 fw-bold mb-3">Saved Favourites</h2>
       <div class="row g-4" id="favouritesContainer">
         <p class="text-muted" id="emptyFavouritesMsg">You have not favorited any exercises yet.</p>
-      </div>
-    </section>
-
-    <!-- Progress -->
-    <section id="progressSection" class="mt-5 pt-5 border-top">
-      <h2 class="h3 fw-bold mb-2">Your Progress</h2>
-      <p class="text-muted mb-4">Every finished workout is logged here, with the weight and reps you actually did for each set, so you can see your growth over time. Progress is saved in your browser.</p>
-      <p class="text-muted small" id="progressSummary"></p>
-      <div class="row g-4">
-        <div class="col-12 col-lg-6">
-          <h3 class="h5 fw-bold">Best lifts and history</h3>
-          <div id="progressContainer">
-            <p class="text-muted">No workouts logged yet. Start a routine and finish it to log your first session.</p>
-          </div>
-        </div>
-        <div class="col-12 col-lg-6">
-          <h3 class="h5 fw-bold">Recent workouts</h3>
-          <div id="recentSessionsContainer">
-            <p class="text-muted">No workouts logged yet.</p>
-          </div>
-          <button class="btn btn-sm btn-outline-danger mt-2" type="button" id="clearHistoryBtn">Clear workout history</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- About -->
-    <section id="aboutSection" class="mt-5 pt-5 border-top">
-      <h2 class="h3 fw-bold mb-3">About FullBody Fitness</h2>
-      <p class="lead">FullBody Fitness is a simple exercise finder. Search for a movement by name or muscle group, read what it works and how to do it, save the ones you like, and turn them into a routine you can actually follow.</p>
-      <p class="text-muted">It was built as a course project for CSCI 2170 at Dalhousie University, because most fitness apps are cluttered with accounts, ads and paywalls before you even see a single exercise. This one does the opposite: open the page, search, and start moving.</p>
-
-      <div class="row g-3 my-4" id="aboutStats">
-        <div class="col-6 col-md-3">
-          <div class="card text-center shadow-sm h-100"><div class="card-body">
-            <div class="stat-number" id="statExercises">-</div>
-            <div class="text-muted small">Exercises loaded</div>
-          </div></div>
-        </div>
-        <div class="col-6 col-md-3">
-          <div class="card text-center shadow-sm h-100"><div class="card-body">
-            <div class="stat-number" id="statCategories">-</div>
-            <div class="text-muted small">Categories</div>
-          </div></div>
-        </div>
-        <div class="col-6 col-md-3">
-          <div class="card text-center shadow-sm h-100"><div class="card-body">
-            <div class="stat-number" id="statMuscles">-</div>
-            <div class="text-muted small">Muscles covered</div>
-          </div></div>
-        </div>
-        <div class="col-6 col-md-3">
-          <div class="card text-center shadow-sm h-100"><div class="card-body">
-            <div class="stat-number" id="statPhotos">-</div>
-            <div class="text-muted small">With real photos</div>
-          </div></div>
-        </div>
-      </div>
-
-      <div class="row g-4 mb-4">
-        <div class="col-12 col-md-4">
-          <div class="card h-100 shadow-sm"><div class="card-body">
-            <h3 class="h5 fw-bold">1. Search</h3>
-            <p class="text-muted mb-0">Type a movement like "Press" or "Squat", or a muscle group like "Chest" or "Legs". Results filter as you type.</p>
-          </div></div>
-        </div>
-        <div class="col-12 col-md-4">
-          <div class="card h-100 shadow-sm"><div class="card-body">
-            <h3 class="h5 fw-bold">2. Learn and save</h3>
-            <p class="text-muted mb-0">Tap Details for the description, muscles worked and equipment needed. Tap Favourite to keep it for later.</p>
-          </div></div>
-        </div>
-        <div class="col-12 col-md-4">
-          <div class="card h-100 shadow-sm"><div class="card-body">
-            <h3 class="h5 fw-bold">3. Build a routine</h3>
-            <p class="text-muted mb-0">Add favourites to a routine, set your sets, reps and rest, save it, then start the workout and check exercises off as you go.</p>
-          </div></div>
-        </div>
-      </div>
-
-      <div class="row g-4">
-        <div class="col-12 col-md-6">
-          <h3 class="h5 fw-bold">Built with</h3>
-          <ul class="text-muted">
-            <li>HTML, CSS and vanilla JavaScript</li>
-            <li>Bootstrap 5.3.3</li>
-            <li>wger Workout Manager REST API for exercise data, images, muscles and equipment</li>
-            <li>Browser storage (localStorage) for favourites, routines and drafts, no account needed</li>
-          </ul>
-        </div>
-        <div class="col-12 col-md-6">
-          <h3 class="h5 fw-bold">A note on the data</h3>
-          <p class="text-muted mb-2">Exercise names, descriptions, photos and muscle data come from <a href="https://wger.de/" target="_blank" rel="noopener">wger</a>. Some exercises have no photo, so a placeholder is shown instead, and some descriptions are short because that is all the source provides.</p>
-          <p class="text-muted mb-0">This app gives general exercise information. It is not medical advice and it does not replace a coach, trainer or health professional. Start light, use good form, and stop if something hurts.</p>
-        </div>
       </div>
     </section>
   </main>

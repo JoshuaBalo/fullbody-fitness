@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About - FullBody Fitness</title>
+
+  <!--Citation:
+  Bootstrap 5.3.3 framework (Bootstrap Team, 2024)
+  -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="css/styles.css">
+  <script>
+    // Apply the saved theme before the page paints, so there is no light flash in dark mode
+    (function () {
+      try {
+        var saved = localStorage.getItem("fullbodyTheme");
+        var theme = saved || (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-bs-theme", theme);
+      } catch (e) {
+        document.documentElement.setAttribute("data-bs-theme", "light");
+      }
+    })();
+  </script>
+</head>
+
+<body>
+
+  <header id="banner">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div class="container">
+        <a class="navbar-brand fw-bold" href="index.html">FullBody Fitness</a>
+
+        <button class="btn btn-outline-light btn-sm ms-auto me-2" type="button" id="themeToggleBtn" aria-label="Toggle dark mode">🌙 Dark</button>
+
+        <button class="navbar-toggler" type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#fitnessNav"
+          aria-controls="fitnessNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="fitnessNav">
+          <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link" href="index.html">Exercises</a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link" href="routine.html">Routine</a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link" href="progress.html">Progress</a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="about.html">About</a>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+    </nav>
+  </header>
+
+  <main id="pg-main-content" class="container my-5">
+
+    <!-- About -->
+    <section id="aboutSection">
+      <h1 class="h3 fw-bold mb-3">About FullBody Fitness</h1>
+      <p class="lead">FullBody Fitness is a simple exercise finder. Search for a movement by name or muscle group, read what it works and how to do it, save the ones you like, and turn them into a routine you can actually follow.</p>
+      <p class="text-muted">It was built as a course project for CSCI 2170 at Dalhousie University, because most fitness apps are cluttered with accounts, ads and paywalls before you even see a single exercise. This one does the opposite: open the page, search, and start moving.</p>
+
+      <div class="row g-3 my-4" id="aboutStats">
+        <div class="col-6 col-md-3">
+          <div class="card text-center shadow-sm h-100"><div class="card-body">
+            <div class="stat-number" id="statExercises">-</div>
+            <div class="text-muted small">Exercises loaded</div>
+          </div></div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card text-center shadow-sm h-100"><div class="card-body">
+            <div class="stat-number" id="statCategories">-</div>
+            <div class="text-muted small">Categories</div>
+          </div></div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card text-center shadow-sm h-100"><div class="card-body">
+            <div class="stat-number" id="statMuscles">-</div>
+            <div class="text-muted small">Muscles covered</div>
+          </div></div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card text-center shadow-sm h-100"><div class="card-body">
+            <div class="stat-number" id="statPhotos">-</div>
+            <div class="text-muted small">With real photos</div>
+          </div></div>
+        </div>
+      </div>
+
+      <div class="row g-4 mb-4">
+        <div class="col-12 col-md-4">
+          <div class="card h-100 shadow-sm"><div class="card-body">
+            <h3 class="h5 fw-bold">1. Search</h3>
+            <p class="text-muted mb-0">Type a movement like "Press" or "Squat", or a muscle group like "Chest" or "Legs". Results filter as you type.</p>
+          </div></div>
+        </div>
+        <div class="col-12 col-md-4">
+          <div class="card h-100 shadow-sm"><div class="card-body">
+            <h3 class="h5 fw-bold">2. Learn and save</h3>
+            <p class="text-muted mb-0">Tap Details for the description, muscles worked and equipment needed. Tap Favourite to keep it for later.</p>
+          </div></div>
+        </div>
+        <div class="col-12 col-md-4">
+          <div class="card h-100 shadow-sm"><div class="card-body">
+            <h3 class="h5 fw-bold">3. Build a routine</h3>
+            <p class="text-muted mb-0">Add favourites to a routine, set your sets, reps and rest, save it, then start the workout and check exercises off as you go.</p>
+          </div></div>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-12 col-md-6">
+          <h3 class="h5 fw-bold">Built with</h3>
+          <ul class="text-muted">
+            <li>HTML, CSS and vanilla JavaScript</li>
+            <li>Bootstrap 5.3.3</li>
+            <li>wger Workout Manager REST API for exercise data, images, muscles and equipment</li>
+            <li>Browser storage (localStorage) for favourites, routines and drafts, no account needed</li>
+          </ul>
+        </div>
+        <div class="col-12 col-md-6">
+          <h3 class="h5 fw-bold">A note on the data</h3>
+          <p class="text-muted mb-2">Exercise names, descriptions, photos and muscle data come from <a href="https://wger.de/" target="_blank" rel="noopener">wger</a>. Some exercises have no photo, so a placeholder is shown instead, and some descriptions are short because that is all the source provides.</p>
+          <p class="text-muted mb-0">This app gives general exercise information. It is not medical advice and it does not replace a coach, trainer or health professional. Start light, use good form, and stop if something hurts.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="pg-footer" class="bg-dark text-white text-center py-4 mt-auto">
+    <p class="mb-0">&copy; 2026 CSCI 2170 | FullBody Fitness </p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <script src="js/app.js"></script>
+</body>
+
+</html>

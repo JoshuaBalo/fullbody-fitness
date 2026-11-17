@@ -13,6 +13,15 @@ A web app that helps you find exercises by movement name or target muscle group,
 - An About section explaining what the app is, how it works, live stats from the loaded exercises, and the data source
 - Shows a visible error message when the exercise data fails to load
 
+## Pages
+
+- `index.html` — Exercises: search, exercise cards, details, favourites
+- `routine.html` — Routine builder, templates, saved routines, workout mode
+- `progress.html` — Your Progress: logged workouts, best lifts, history
+- `about.html` — About the app, how it works, live stats, data source
+
+Use the top navigation to move between pages. Dark mode / light mode is in the top bar and is remembered in your browser.
+
 ## Built with
 
 - HTML, CSS, and vanilla JavaScript
