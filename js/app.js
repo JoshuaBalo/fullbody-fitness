@@ -370,7 +370,15 @@ function loadDraft() {
   try {
     const saved = JSON.parse(localStorage.getItem("fullbodyRoutineDraft") || "null");
     if (saved) {
-      draftRoutine = (saved.items || []).filter((item) => allExercises.some((ex) => ex.id === item.exerciseId));
+      draftRoutine = (saved.items || []).map((item) => ({
+        exerciseId: item.exerciseId,
+        name: item.name || "",
+        category: item.category || "General",
+        muscles: item.muscles || [],
+        sets: item.sets || 3,
+        reps: item.reps || "10",
+        rest: item.rest == null ? 90 : item.rest
+      }));
       if (routineNameInput && saved.name) routineNameInput.value = saved.name;
       if (routineDayInput && saved.day) routineDayInput.value = saved.day;
     }
@@ -392,7 +400,13 @@ function addToRoutine(exerciseId) {
     if (draftSummary) draftSummary.textContent = exerciseName(exercise) + " is already in this routine.";
     return;
   }
-  draftRoutine.push({ exerciseId, sets: 3, reps: "10", rest: 90 });
+  draftRoutine.push({
+    exerciseId,
+    name: exerciseName(exercise),
+    category: exercise.category ? exercise.category.name : "General",
+    muscles: muscleNames(exercise).primary.slice(0, 2),
+    sets: 3, reps: "10", rest: 90
+  });
   saveDraft();
   renderDraft();
   const routineSectionEl = document.getElementById("routineSection");
@@ -461,10 +475,9 @@ function renderDraft() {
   }
   draftRoutine.forEach((item, index) => {
     const exercise = allExercises.find((ex) => ex.id === item.exerciseId);
-    if (!exercise) return;
-    const name = exerciseName(exercise);
-    const category = exercise.category ? exercise.category.name : "General";
-    const { primary } = muscleNames(exercise);
+    const name = item.name || (exercise ? exerciseName(exercise) : "Exercise");
+    const category = item.category || (exercise && exercise.category ? exercise.category.name : "General");
+    const primary = (item.muscles && item.muscles.length) ? item.muscles : (exercise ? muscleNames(exercise).primary : []);
     const row = document.createElement("div");
     row.className = "draft-item";
     row.innerHTML = `
@@ -631,7 +644,13 @@ function buildTemplateItems(key) {
     }
     if (!exercise) return;
     used.add(exercise.id);
-    items.push({ exerciseId: exercise.id, sets: slot.sets, reps: slot.reps, rest: slot.rest });
+    items.push({
+      exerciseId: exercise.id,
+      name: exerciseName(exercise),
+      category: exercise.category ? exercise.category.name : "General",
+      muscles: muscleNames(exercise).primary.slice(0, 2),
+      sets: slot.sets, reps: slot.reps, rest: slot.rest
+    });
   });
   return items;
 }
@@ -670,14 +689,21 @@ function createPushPullLegsSplit() {
 
 function startWorkout(name, items) {
   const resolved = items
-    .map((item) => ({
-      exerciseId: item.exerciseId,
-      sets: item.sets || 3,
-      reps: item.reps || "10",
-      rest: item.rest == null ? 90 : item.rest,
-      exercise: allExercises.find((ex) => ex.id === item.exerciseId)
-    }))
-    .filter((item) => item.exercise);
+    .map((item) => {
+      const found = allExercises.find((ex) => ex.id === item.exerciseId);
+      const exercise = found || {
+        id: item.exerciseId,
+        category: { name: item.category || "General" },
+        translations: [{ language: 2, name: item.name || "Exercise", description: "" }]
+      };
+      return {
+        exerciseId: item.exerciseId,
+        sets: item.sets || 3,
+        reps: item.reps || "10",
+        rest: item.rest == null ? 90 : item.rest,
+        exercise
+      };
+    });
   if (resolved.length === 0) {
     if (draftSummary) draftSummary.textContent = "Add at least one exercise before starting a workout.";
     return;
@@ -952,6 +978,8 @@ if (themeToggleBtn) themeToggleBtn.addEventListener("click", toggleTheme);
 // "No saved routines yet" while the exercise data is still loading
 loadRoutines();
 renderSavedRoutines();
+loadDraft();
+renderDraft();
 loadWorkoutLog();
 renderProgress();
 
