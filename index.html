@@ -44,6 +44,10 @@
             </li>
 
             <li class="nav-item">
+              <a class="nav-link" href="#progressSection">Progress</a>
+            </li>
+
+            <li class="nav-item">
               <a class="nav-link" href="#aboutSection">About</a>
             </li>
           </ul>
@@ -92,6 +96,21 @@
                 <input type="text" id="routineNameInput" class="form-control" placeholder="e.g. Full Body - Monday" aria-label="Routine name">
               </div>
 
+              <label for="routineDayInput" class="form-label fw-bold">Day</label>
+              <select id="routineDayInput" class="form-select mb-3" aria-label="Routine day">
+                <option value="">No day assigned</option>
+                <option>Monday</option>
+                <option>Tuesday</option>
+                <option>Wednesday</option>
+                <option>Thursday</option>
+                <option>Friday</option>
+                <option>Saturday</option>
+                <option>Sunday</option>
+                <option>Push day</option>
+                <option>Pull day</option>
+                <option>Legs day</option>
+              </select>
+
               <div id="draftContainer">
                 <p class="text-muted" id="emptyDraftMsg">No exercises in this routine yet. Use the "Add to Routine" button on any exercise card, or on a favourite, to start one.</p>
               </div>
@@ -121,7 +140,7 @@
               </div>
               <div id="workoutContainer"></div>
               <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
-                <button class="btn btn-outline-primary btn-sm" type="button" id="restTimerBtn">Start 60s rest</button>
+                <button class="btn btn-outline-primary btn-sm" type="button" id="restTimerBtn">Start 90s rest</button>
                 <span class="fw-bold" id="restTimerText"></span>
                 <button class="btn btn-success btn-sm ms-auto" type="button" id="finishWorkoutBtn">Finish Workout</button>
               </div>
@@ -148,6 +167,10 @@
                   <span class="fw-bold">Upper / Lower</span><br>
                   <span class="small text-muted">Upper-body pressing and pulling, then legs and calves.</span>
                 </button>
+                <button class="btn btn-success text-start" type="button" onclick="createPushPullLegsSplit()">
+                  <span class="fw-bold">Create Push / Pull / Legs split</span><br>
+                  <span class="small">Saves three separate routines at once: one Push day, one Pull day, one Legs day.</span>
+                </button>
               </div>
             </div>
           </div>
@@ -168,6 +191,28 @@
       <h2 class="h3 fw-bold mb-3">Saved Favourites</h2>
       <div class="row g-4" id="favouritesContainer">
         <p class="text-muted" id="emptyFavouritesMsg">You have not favorited any exercises yet.</p>
+      </div>
+    </section>
+
+    <!-- Progress -->
+    <section id="progressSection" class="mt-5 pt-5 border-top">
+      <h2 class="h3 fw-bold mb-2">Your Progress</h2>
+      <p class="text-muted mb-4">Every finished workout is logged here, with the weight and reps you actually did for each set, so you can see your growth over time. Progress is saved in your browser.</p>
+      <p class="text-muted small" id="progressSummary"></p>
+      <div class="row g-4">
+        <div class="col-12 col-lg-6">
+          <h3 class="h5 fw-bold">Best lifts and history</h3>
+          <div id="progressContainer">
+            <p class="text-muted">No workouts logged yet. Start a routine and finish it to log your first session.</p>
+          </div>
+        </div>
+        <div class="col-12 col-lg-6">
+          <h3 class="h5 fw-bold">Recent workouts</h3>
+          <div id="recentSessionsContainer">
+            <p class="text-muted">No workouts logged yet.</p>
+          </div>
+          <button class="btn btn-sm btn-outline-danger mt-2" type="button" id="clearHistoryBtn">Clear workout history</button>
+        </div>
       </div>
     </section>
 
