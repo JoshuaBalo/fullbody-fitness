@@ -4,9 +4,12 @@ A web app that helps you find exercises by movement name or target muscle group,
 
 ## What it does
 
-- Search exercises by name or muscle group, with a detail popup for each exercise
+- Search exercises by name or muscle group, with a detail popup for each exercise showing its muscles worked and equipment needed
 - Responsive layouts for computer, tablet, and phone
 - Save favourite exercises and manage them in a Favourites section. Favourites are saved in your browser, so they are still there after you reload the page
+- Build a routine from any exercise or favourite: set sets, reps and rest per exercise, reorder it, save it, and start a workout with a check-off list, progress bar and rest timer. Routines are saved in your browser too
+- Start from a template: Full Body Beginner, Push / Pull / Legs, or Upper / Lower
+- An About section explaining what the app is, how it works, live stats from the loaded exercises, and the data source
 - Shows a visible error message when the exercise data fails to load
 
 ## Built with
