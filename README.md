@@ -1,0 +1,23 @@
+# FullBody Fitness
+
+A web app that helps you find exercises by movement name or target muscle group, using the wger Workout Manager REST API. Built as a course project for CSCI 2170 at Dalhousie University.
+
+## What it does
+
+- Search exercises by name or muscle group, with a detail view for each exercise
+- Responsive layouts for computer, tablet, and phone
+- Save favourite exercises and manage them in a Favourites section
+- Shows a visible error message when the exercise data fails to load
+
+## Built with
+
+- HTML, CSS, and vanilla JavaScript
+- Bootstrap 5.3.3
+- wger Workout Manager REST API (https://wger.de/api/v2/exerciseinfo/)
+
+## How to run it
+
+1. Clone this repository or download it.
+2. Open the folder in your editor of choice.
+3. Open index.html in a browser, or use the Live Server extension in VS Code.
+4. Make sure you are connected to the internet, the exercise data loads from the wger API.
