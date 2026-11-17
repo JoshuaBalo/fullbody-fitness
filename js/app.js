@@ -62,8 +62,10 @@ async function getExercises(){
     try{
 
       //if needed, to reset the alert box back
-      errorAlert.classList.add("d-none");
-      errorAlert.textContent= "";
+      if (errorAlert) {
+        errorAlert.classList.add("d-none");
+        errorAlert.textContent= "";
+      }
 
       const response = await fetch(apiUrl);
       
@@ -94,10 +96,12 @@ async function getExercises(){
 
     } catch (error){
   
-        errorAlert.textContent = `Not able to load exercises. Please try again later. (${error.message})`;
+        if (errorAlert) {
+          errorAlert.textContent = `Not able to load exercises. Please try again later. (${error.message})`;
 
-        // removing d-none is to clear bootstraps display:none class
-        errorAlert.classList.remove("d-none");
+          // removing d-none is to clear bootstraps display:none class
+          errorAlert.classList.remove("d-none");
+        }
     }
 }
 
@@ -122,6 +126,7 @@ function updateAboutStats() {
 
 //T o display the 50 exercises
 function renderExercises(exercisesToDisplay){
+  if (!exerciseContainer) return;
   //Starting with a clean slate
   exerciseContainer.innerHTML = "";
 
@@ -212,8 +217,8 @@ function handleSearch(){
   renderExercises(filtered);
 }
 // Run search beforr we search and also run search live as I type into the input box
-searchBtn.addEventListener("click", handleSearch);
-input.addEventListener("input", handleSearch);
+if (searchBtn) searchBtn.addEventListener("click", handleSearch);
+if (input) input.addEventListener("input", handleSearch);
 
 
 //Details button on an exercise card
@@ -237,12 +242,14 @@ function showDetails(exerciseId) {
       : "";
     const equipmentText = equipment.length ? "Equipment: " + equipment.join(", ") : "Equipment: none (bodyweight exercise)";
 
+    const detailsModalEl = document.getElementById("detailsModal");
+    if (!detailsModalEl) return;
     document.getElementById("detailsModalLabel").textContent = name;
     document.getElementById("detailsCategory").textContent = "Category: " + (selectedExercise.category?.name || "General");
     document.getElementById("detailsMuscles").textContent = musclesText;
     document.getElementById("detailsEquipment").textContent = equipmentText;
     document.getElementById("detailsDescription").textContent = cleanDescription;
-    const detailsModal = new bootstrap.Modal(document.getElementById("detailsModal"));
+    const detailsModal = new bootstrap.Modal(detailsModalEl);
     detailsModal.show();
   }
 }
@@ -290,7 +297,8 @@ function toggleFavourite(exerciseId) {
 
 // thr favourite card in #favouritesContainer 
 function renderFavourites() {
-  
+  if (!favouriteContainer) return;
+
   favouriteContainer.innerHTML = "";
 
   // incase list is stil empty
@@ -387,7 +395,16 @@ function addToRoutine(exerciseId) {
   draftRoutine.push({ exerciseId, sets: 3, reps: "10", rest: 90 });
   saveDraft();
   renderDraft();
-  document.getElementById("routineSection").scrollIntoView({ behavior: "smooth" });
+  const routineSectionEl = document.getElementById("routineSection");
+  if (routineSectionEl) {
+    routineSectionEl.scrollIntoView({ behavior: "smooth" });
+  } else {
+    const toast = document.getElementById("routineAddedToast");
+    if (toast) {
+      toast.classList.remove("d-none");
+      setTimeout(() => toast.classList.add("d-none"), 4000);
+    }
+  }
 }
 
 function updateDraftItem(index, field, value) {
@@ -534,7 +551,8 @@ function loadRoutine(id) {
   if (routineDayInput) routineDayInput.value = routine.day || "";
   saveDraft();
   renderDraft();
-  document.getElementById("routineSection").scrollIntoView({ behavior: "smooth" });
+  const routineSectionEl = document.getElementById("routineSection");
+  if (routineSectionEl) routineSectionEl.scrollIntoView({ behavior: "smooth" });
 }
 
 function deleteRoutine(id) {
@@ -623,7 +641,8 @@ function applyTemplate(key) {
   if (routineNameInput) routineNameInput.value = TEMPLATE_NAMES[key] || "My Routine";
   saveDraft();
   renderDraft();
-  document.getElementById("routineSection").scrollIntoView({ behavior: "smooth" });
+  const routineSectionEl = document.getElementById("routineSection");
+  if (routineSectionEl) routineSectionEl.scrollIntoView({ behavior: "smooth" });
 }
 
 function createPushPullLegsSplit() {
@@ -643,7 +662,8 @@ function createPushPullLegsSplit() {
   saveRoutines();
   renderSavedRoutines();
   if (draftSummary) draftSummary.textContent = "Saved " + created + " routines: Push Day, Pull Day and Legs Day. Start the one for today from Saved Routines.";
-  document.getElementById("routineSection").scrollIntoView({ behavior: "smooth" });
+  const routineSectionEl = document.getElementById("routineSection");
+  if (routineSectionEl) routineSectionEl.scrollIntoView({ behavior: "smooth" });
 }
 
 // ---- Workout mode, per set with weight logging ----
@@ -672,8 +692,10 @@ function startWorkout(name, items) {
   };
   if (workoutDoneMsg) workoutDoneMsg.textContent = "";
   renderWorkout();
-  workoutSection.classList.remove("d-none");
-  workoutSection.scrollIntoView({ behavior: "smooth" });
+  if (workoutSection) {
+    workoutSection.classList.remove("d-none");
+    workoutSection.scrollIntoView({ behavior: "smooth" });
+  }
 }
 
 function startDraftWorkout() {
@@ -710,7 +732,7 @@ function toggleWorkoutSet(exerciseIndex, setIndex) {
 }
 
 function renderWorkout() {
-  if (!currentWorkout) return;
+  if (!currentWorkout || !workoutContainer) return;
   workoutTitle.textContent = "Workout: " + currentWorkout.name;
   workoutContainer.innerHTML = "";
   currentWorkout.items.forEach((item, exerciseIndex) => {
@@ -755,6 +777,7 @@ function renderWorkout() {
 
 function finishWorkout() {
   if (!currentWorkout) return;
+  stopRestTimer();
   // Log the session: only sets with a weight or reps recorded, so empty rows do not count
   const entries = currentWorkout.items.map((item) => ({
     exerciseId: item.exerciseId,
@@ -774,7 +797,7 @@ function finishWorkout() {
 
 function closeWorkout() {
   stopRestTimer();
-  workoutSection.classList.add("d-none");
+  if (workoutSection) workoutSection.classList.add("d-none");
   currentWorkout = null;
 }
 
@@ -782,16 +805,16 @@ function startRestTimer(seconds) {
   const length = seconds || 90;
   if (restTimerId) stopRestTimer();
   restSecondsLeft = length;
-  restTimerBtn.textContent = "Stop rest";
-  restTimerText.textContent = "Rest: " + restSecondsLeft + "s";
+  if (restTimerBtn) restTimerBtn.textContent = "Stop rest";
+  if (restTimerText) restTimerText.textContent = "Rest: " + restSecondsLeft + "s";
   restTimerId = setInterval(() => {
     restSecondsLeft -= 1;
     if (restSecondsLeft <= 0) {
       stopRestTimer();
-      restTimerText.textContent = "Rest over, next set.";
+      if (restTimerText) restTimerText.textContent = "Rest over, next set.";
       return;
     }
-    restTimerText.textContent = "Rest: " + restSecondsLeft + "s";
+    if (restTimerText) restTimerText.textContent = "Rest: " + restSecondsLeft + "s";
   }, 1000);
 }
 
@@ -893,6 +916,44 @@ function clearHistory() {
   saveWorkoutLog();
   renderProgress();
 }
+
+// ---- Dark mode / light mode ----
+
+function currentTheme() {
+  return document.documentElement.getAttribute("data-bs-theme") || "light";
+}
+
+function updateThemeButton() {
+  const btn = document.getElementById("themeToggleBtn");
+  if (!btn) return;
+  btn.textContent = currentTheme() === "dark" ? "☀️ Light" : "🌙 Dark";
+  btn.setAttribute("aria-label", currentTheme() === "dark" ? "Switch to light mode" : "Switch to dark mode");
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-bs-theme", theme);
+  try {
+    localStorage.setItem("fullbodyTheme", theme);
+  } catch (error) {
+    // Theme just lasts for this visit if storage is blocked
+  }
+  updateThemeButton();
+}
+
+function toggleTheme() {
+  applyTheme(currentTheme() === "dark" ? "light" : "dark");
+}
+
+updateThemeButton();
+const themeToggleBtn = document.getElementById("themeToggleBtn");
+if (themeToggleBtn) themeToggleBtn.addEventListener("click", toggleTheme);
+
+// Show saved routines and progress straight away, instead of flashing
+// "No saved routines yet" while the exercise data is still loading
+loadRoutines();
+renderSavedRoutines();
+loadWorkoutLog();
+renderProgress();
 
 // Routine buttons
 const saveRoutineBtn = document.getElementById("saveRoutineBtn");
