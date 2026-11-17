@@ -36,6 +36,19 @@ html {
 }
 
 #routineSection,
-#aboutSection {
+#aboutSection,
+#progressSection {
   scroll-margin-top: 1rem;
+}
+
+/* Dark mode: Bootstrap handles most components via data-bs-theme,
+   these are the custom pieces it does not know about. */
+[data-bs-theme="dark"] .draft-item,
+[data-bs-theme="dark"] .workout-item {
+  background: #212529;
+  border-color: #495057;
+}
+
+[data-bs-theme="dark"] .workout-item.done {
+  opacity: 0.55;
 }
