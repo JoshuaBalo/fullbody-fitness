@@ -38,6 +38,9 @@ async function getExercises(){
       //where is renderExercises initialized?
       renderExercises(allExercises);
 
+      //Bring back any favourites saved in the browser from an earlier visit
+      loadFavourites();
+
     } catch (error){
   
         errorAlert.textContent = `Not able to load exercises. Please try again later. (${error.message})`;
@@ -145,10 +148,34 @@ function showDetails(exerciseId) {
     const rawDescription = englishData && englishData.description ? englishData.description : "No description provided.";
     const cleanDescription = rawDescription.replace(/<\/?[^>]+(>|$)/g, "").replace(/&nbsp;/g, " ");
 
-    alert(`${name.toUpperCase()}\n\nCategory: ${selectedExercise.category?.name || "General"}\n\nDescription:\n${cleanDescription}`);
+    document.getElementById("detailsModalLabel").textContent = name;
+    document.getElementById("detailsCategory").textContent = "Category: " + (selectedExercise.category?.name || "General");
+    document.getElementById("detailsDescription").textContent = cleanDescription;
+    const detailsModal = new bootstrap.Modal(document.getElementById("detailsModal"));
+    detailsModal.show();
   }
 }
 
+
+// Read the saved favourite ids from the browser and rebuild the favourites list
+function loadFavourites() {
+  try {
+    const savedIds = JSON.parse(localStorage.getItem("fullbodyFavourites") || "[]");
+    favouritesList = allExercises.filter((ex) => savedIds.includes(ex.id));
+  } catch (error) {
+    favouritesList = [];
+  }
+  renderFavourites();
+}
+
+// Save the favourite ids in the browser so they survive a reload
+function saveFavourites() {
+  try {
+    localStorage.setItem("fullbodyFavourites", JSON.stringify(favouritesList.map((ex) => ex.id)));
+  } catch (error) {
+    // If the browser blocks storage, favourites just last for this visit
+  }
+}
 
 // Function to add or remove an exercise from favourites when "Favourite" is clicked
 function toggleFavourite(exerciseId) {
@@ -165,8 +192,9 @@ function toggleFavourite(exerciseId) {
     }
   }
 
-  // Refresh them
+  // Refresh them and save them in the browser
   renderFavourites();
+  saveFavourites();
 }
 
 // thr favourite card in #favouritesContainer 
