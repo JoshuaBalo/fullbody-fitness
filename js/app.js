@@ -16,11 +16,13 @@ let favouritesList = [];
 // ---- Routine builder state ----
 let draftRoutine = [];
 let savedRoutines = [];
-let currentWorkout = null; // { name, items: [{exerciseId, sets, reps, rest}], done: [bool] }
+let workoutLog = [];
+let currentWorkout = null; // { name, items: [{exercise, sets, reps, rest, setLogs: [{weight, reps, done}]}], }
 let restTimerId = null;
 let restSecondsLeft = 0;
 
 const routineNameInput = document.getElementById("routineNameInput");
+const routineDayInput = document.getElementById("routineDayInput");
 const draftContainer = document.getElementById("draftContainer");
 const draftSummary = document.getElementById("draftSummary");
 const savedRoutinesContainer = document.getElementById("savedRoutinesContainer");
@@ -32,6 +34,9 @@ const workoutProgressText = document.getElementById("workoutProgressText");
 const workoutDoneMsg = document.getElementById("workoutDoneMsg");
 const restTimerText = document.getElementById("restTimerText");
 const restTimerBtn = document.getElementById("restTimerBtn");
+const progressContainer = document.getElementById("progressContainer");
+const recentSessionsContainer = document.getElementById("recentSessionsContainer");
+const progressSummary = document.getElementById("progressSummary");
 
 // ---- Small helpers for wger data ----
 
@@ -84,6 +89,8 @@ async function getExercises(){
       loadDraft();
       renderDraft();
       renderSavedRoutines();
+      loadWorkoutLog();
+      renderProgress();
 
     } catch (error){
   
@@ -343,6 +350,7 @@ function saveDraft() {
   try {
     localStorage.setItem("fullbodyRoutineDraft", JSON.stringify({
       name: routineNameInput ? routineNameInput.value : "",
+      day: routineDayInput ? routineDayInput.value : "",
       items: draftRoutine
     }));
   } catch (error) {
@@ -356,6 +364,7 @@ function loadDraft() {
     if (saved) {
       draftRoutine = (saved.items || []).filter((item) => allExercises.some((ex) => ex.id === item.exerciseId));
       if (routineNameInput && saved.name) routineNameInput.value = saved.name;
+      if (routineDayInput && saved.day) routineDayInput.value = saved.day;
     }
   } catch (error) {
     draftRoutine = [];
@@ -375,7 +384,7 @@ function addToRoutine(exerciseId) {
     if (draftSummary) draftSummary.textContent = exerciseName(exercise) + " is already in this routine.";
     return;
   }
-  draftRoutine.push({ exerciseId, sets: 3, reps: "10", rest: 60 });
+  draftRoutine.push({ exerciseId, sets: 3, reps: "10", rest: 90 });
   saveDraft();
   renderDraft();
   document.getElementById("routineSection").scrollIntoView({ behavior: "smooth" });
@@ -408,6 +417,7 @@ function removeDraftItem(index) {
 function clearDraft() {
   draftRoutine = [];
   if (routineNameInput) routineNameInput.value = "";
+  if (routineDayInput) routineDayInput.value = "";
   stopRestTimer();
   saveDraft();
   renderDraft();
@@ -479,14 +489,16 @@ function saveRoutine() {
     return;
   }
   const name = (routineNameInput && routineNameInput.value.trim()) || ("Routine " + (savedRoutines.length + 1));
+  const day = routineDayInput ? routineDayInput.value : "";
   savedRoutines.push({
     id: Date.now(),
     name,
+    day,
     items: draftRoutine.map((item) => ({ ...item }))
   });
   saveRoutines();
   renderSavedRoutines();
-  if (draftSummary) draftSummary.textContent = "Saved \"" + name + "\". You can load it again from Saved Routines.";
+  if (draftSummary) draftSummary.textContent = "Saved \"" + name + "\"" + (day ? " for " + day : "") + ". You can load it again from Saved Routines.";
 }
 
 function renderSavedRoutines() {
@@ -502,6 +514,7 @@ function renderSavedRoutines() {
     card.className = "border rounded p-3 mb-2";
     card.innerHTML = `
       <div class="fw-bold">${routine.name}</div>
+      ${routine.day ? `<span class="badge bg-primary mb-1">${routine.day}</span><br>` : ""}
       <div class="text-muted small mb-2">${routine.items.length} exercises · ${totalSets} sets · about ${estimateMinutes(routine.items)} min</div>
       <div class="d-flex flex-wrap gap-2">
         <button class="btn btn-sm btn-primary" type="button" onclick="startSavedWorkout(${routine.id})">Start</button>
@@ -516,8 +529,9 @@ function renderSavedRoutines() {
 function loadRoutine(id) {
   const routine = savedRoutines.find((r) => r.id === id);
   if (!routine) return;
-  draftRoutine = routine.items.map((item) => ({ ...item }));
+  draftRoutine = routine.items.map((item) => ({ ...item, rest: item.rest == null ? 90 : item.rest }));
   if (routineNameInput) routineNameInput.value = routine.name;
+  if (routineDayInput) routineDayInput.value = routine.day || "";
   saveDraft();
   renderDraft();
   document.getElementById("routineSection").scrollIntoView({ behavior: "smooth" });
@@ -531,33 +545,53 @@ function deleteRoutine(id) {
 
 // ---- Templates ----
 
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function findTemplateExercise(search, category) {
-  const needle = search.toLowerCase();
-  const byName = allExercises.find((ex) => exerciseName(ex).toLowerCase().includes(needle));
+  // Match on a whole word, so "Row" does not match "Narrow"
+  const word = new RegExp("\\b" + escapeRegExp(search) + "\\b", "i");
+  const byName = allExercises.find((ex) => word.test(exerciseName(ex)));
   if (byName) return byName;
   return allExercises.find((ex) => ex.category && ex.category.name === category) || null;
 }
 
 const ROUTINE_TEMPLATES = {
   fullbody: [
-    { search: "Squat", category: "Legs", sets: 3, reps: "10", rest: 60 },
-    { search: "Bench Press", category: "Chest", sets: 3, reps: "10", rest: 60 },
-    { search: "Row", category: "Back", sets: 3, reps: "10", rest: 60 },
-    { search: "Crunch", category: "Abs", sets: 3, reps: "12", rest: 45 },
-    { search: "Curl", category: "Arms", sets: 3, reps: "12", rest: 45 }
+    { search: "Squat", category: "Legs", sets: 3, reps: "10", rest: 90 },
+    { search: "Bench Press", category: "Chest", sets: 3, reps: "10", rest: 90 },
+    { search: "Row", category: "Back", sets: 3, reps: "10", rest: 90 },
+    { search: "Crunch", category: "Abs", sets: 3, reps: "12", rest: 60 },
+    { search: "Curl", category: "Arms", sets: 3, reps: "12", rest: 60 }
   ],
   pushpulllegs: [
-    { search: "Bench Press", category: "Chest", sets: 3, reps: "10", rest: 60 },
-    { search: "Row", category: "Back", sets: 3, reps: "10", rest: 60 },
-    { search: "Squat", category: "Legs", sets: 3, reps: "10", rest: 60 },
-    { search: "Calf", category: "Calves", sets: 3, reps: "12", rest: 45 }
+    { search: "Bench Press", category: "Chest", sets: 3, reps: "10", rest: 90 },
+    { search: "Row", category: "Back", sets: 3, reps: "10", rest: 90 },
+    { search: "Squat", category: "Legs", sets: 3, reps: "10", rest: 90 },
+    { search: "Calf", category: "Calves", sets: 3, reps: "12", rest: 60 }
   ],
   upperlower: [
-    { search: "Shoulder Press", category: "Shoulders", sets: 3, reps: "10", rest: 60 },
-    { search: "Row", category: "Back", sets: 3, reps: "10", rest: 60 },
-    { search: "Curl", category: "Arms", sets: 3, reps: "12", rest: 45 },
-    { search: "Squat", category: "Legs", sets: 3, reps: "10", rest: 60 },
-    { search: "Lunge", category: "Legs", sets: 3, reps: "10", rest: 60 }
+    { search: "Shoulder Press", category: "Shoulders", sets: 3, reps: "10", rest: 90 },
+    { search: "Row", category: "Back", sets: 3, reps: "10", rest: 90 },
+    { search: "Curl", category: "Arms", sets: 3, reps: "12", rest: 60 },
+    { search: "Squat", category: "Legs", sets: 3, reps: "10", rest: 90 },
+    { search: "Lunge", category: "Legs", sets: 3, reps: "10", rest: 90 }
+  ],
+  push: [
+    { search: "Bench Press", category: "Chest", sets: 3, reps: "10", rest: 90 },
+    { search: "Shoulder Press", category: "Shoulders", sets: 3, reps: "10", rest: 90 },
+    { search: "Push Up", category: "Chest", sets: 3, reps: "12", rest: 60 }
+  ],
+  pull: [
+    { search: "Row", category: "Back", sets: 3, reps: "10", rest: 90 },
+    { search: "Pull", category: "Back", sets: 3, reps: "8", rest: 90 },
+    { search: "Curl", category: "Arms", sets: 3, reps: "12", rest: 60 }
+  ],
+  legs: [
+    { search: "Squat", category: "Legs", sets: 3, reps: "10", rest: 90 },
+    { search: "Lunge", category: "Legs", sets: 3, reps: "10", rest: 90 },
+    { search: "Calf", category: "Calves", sets: 3, reps: "12", rest: 60 }
   ]
 };
 
@@ -567,11 +601,11 @@ const TEMPLATE_NAMES = {
   upperlower: "Upper / Lower"
 };
 
-function applyTemplate(key) {
+function buildTemplateItems(key) {
   const template = ROUTINE_TEMPLATES[key];
-  if (!template) return;
+  if (!template) return [];
   const used = new Set();
-  draftRoutine = [];
+  const items = [];
   template.forEach((slot) => {
     let exercise = findTemplateExercise(slot.search, slot.category);
     if (exercise && used.has(exercise.id)) {
@@ -579,26 +613,63 @@ function applyTemplate(key) {
     }
     if (!exercise) return;
     used.add(exercise.id);
-    draftRoutine.push({ exerciseId: exercise.id, sets: slot.sets, reps: slot.reps, rest: slot.rest });
+    items.push({ exerciseId: exercise.id, sets: slot.sets, reps: slot.reps, rest: slot.rest });
   });
+  return items;
+}
+
+function applyTemplate(key) {
+  draftRoutine = buildTemplateItems(key);
   if (routineNameInput) routineNameInput.value = TEMPLATE_NAMES[key] || "My Routine";
   saveDraft();
   renderDraft();
   document.getElementById("routineSection").scrollIntoView({ behavior: "smooth" });
 }
 
-// ---- Workout mode ----
+function createPushPullLegsSplit() {
+  const days = [
+    { key: "push", name: "Push Day", day: "Push day" },
+    { key: "pull", name: "Pull Day", day: "Pull day" },
+    { key: "legs", name: "Legs Day", day: "Legs day" }
+  ];
+  let created = 0;
+  days.forEach((entry) => {
+    const items = buildTemplateItems(entry.key);
+    if (items.length === 0) return;
+    savedRoutines.push({ id: Date.now() + created, name: entry.name, day: entry.day, items });
+    created += 1;
+  });
+  if (created === 0) return;
+  saveRoutines();
+  renderSavedRoutines();
+  if (draftSummary) draftSummary.textContent = "Saved " + created + " routines: Push Day, Pull Day and Legs Day. Start the one for today from Saved Routines.";
+  document.getElementById("routineSection").scrollIntoView({ behavior: "smooth" });
+}
+
+// ---- Workout mode, per set with weight logging ----
 
 function startWorkout(name, items) {
   const resolved = items
-    .map((item) => ({ ...item, exercise: allExercises.find((ex) => ex.id === item.exerciseId) }))
+    .map((item) => ({
+      exerciseId: item.exerciseId,
+      sets: item.sets || 3,
+      reps: item.reps || "10",
+      rest: item.rest == null ? 90 : item.rest,
+      exercise: allExercises.find((ex) => ex.id === item.exerciseId)
+    }))
     .filter((item) => item.exercise);
   if (resolved.length === 0) {
     if (draftSummary) draftSummary.textContent = "Add at least one exercise before starting a workout.";
     return;
   }
   stopRestTimer();
-  currentWorkout = { name, items: resolved, done: resolved.map(() => false) };
+  currentWorkout = {
+    name,
+    items: resolved.map((item) => ({
+      ...item,
+      setLogs: Array.from({ length: item.sets }, () => ({ weight: "", reps: item.reps, done: false }))
+    }))
+  };
   if (workoutDoneMsg) workoutDoneMsg.textContent = "";
   renderWorkout();
   workoutSection.classList.remove("d-none");
@@ -614,46 +685,90 @@ function startSavedWorkout(id) {
   if (routine) startWorkout(routine.name, routine.items);
 }
 
-function toggleWorkoutDone(index) {
-  if (!currentWorkout || !currentWorkout.items[index]) return;
-  currentWorkout.done[index] = !currentWorkout.done[index];
+function updateWorkoutSet(exerciseIndex, setIndex, field, value) {
+  if (!currentWorkout || !currentWorkout.items[exerciseIndex]) return;
+  const log = currentWorkout.items[exerciseIndex].setLogs[setIndex];
+  if (!log) return;
+  if (field === "weight") log.weight = String(value).slice(0, 8);
+  if (field === "reps") log.reps = String(value).slice(0, 10) || "";
+}
+
+function toggleWorkoutSet(exerciseIndex, setIndex) {
+  if (!currentWorkout || !currentWorkout.items[exerciseIndex]) return;
+  const item = currentWorkout.items[exerciseIndex];
+  const log = item.setLogs[setIndex];
+  if (!log) return;
+  log.done = !log.done;
   renderWorkout();
+  // Rest timer between sets: start the rest for this exercise when a set is finished,
+  // unless it was the very last set of the whole workout
+  if (log.done) {
+    const totalSets = currentWorkout.items.reduce((t, it) => t + it.setLogs.length, 0);
+    const doneSets = currentWorkout.items.reduce((t, it) => t + it.setLogs.filter((s) => s.done).length, 0);
+    if (doneSets < totalSets) startRestTimer(item.rest || 90);
+  }
 }
 
 function renderWorkout() {
   if (!currentWorkout) return;
   workoutTitle.textContent = "Workout: " + currentWorkout.name;
   workoutContainer.innerHTML = "";
-  currentWorkout.items.forEach((item, index) => {
+  currentWorkout.items.forEach((item, exerciseIndex) => {
     const name = exerciseName(item.exercise);
     const category = item.exercise.category ? item.exercise.category.name : "General";
-    const row = document.createElement("div");
-    row.className = "workout-item" + (currentWorkout.done[index] ? " done" : "");
-    row.innerHTML = `
-      <div class="form-check">
-        <input class="form-check-input" type="checkbox" id="workoutCheck${index}" ${currentWorkout.done[index] ? "checked" : ""} onchange="toggleWorkoutDone(${index})">
-        <label class="form-check-label" for="workoutCheck${index}">
-          <span class="workout-name fw-bold">${name}</span>
-          <span class="badge bg-secondary ms-1">${category}</span><br>
-          <span class="text-muted small">${item.sets} sets × ${item.reps} reps · ${item.rest}s rest</span>
-        </label>
-      </div>
+    const block = document.createElement("div");
+    block.className = "workout-item";
+    let setsHtml = "";
+    item.setLogs.forEach((log, setIndex) => {
+      setsHtml += `
+        <div class="row g-2 align-items-center mb-2 ${log.done ? "opacity-50" : ""}">
+          <div class="col-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="workoutCheck${exerciseIndex}_${setIndex}" ${log.done ? "checked" : ""} onchange="toggleWorkoutSet(${exerciseIndex}, ${setIndex})">
+              <label class="form-check-label" for="workoutCheck${exerciseIndex}_${setIndex}">Set ${setIndex + 1}</label>
+            </div>
+          </div>
+          <div class="col-5">
+            <input type="number" class="form-control form-control-sm" min="0" step="0.5" placeholder="Weight (kg)" value="${log.weight}" onchange="updateWorkoutSet(${exerciseIndex}, ${setIndex}, 'weight', this.value)" aria-label="Weight in kg for set ${setIndex + 1}">
+          </div>
+          <div class="col-4">
+            <input type="text" class="form-control form-control-sm" placeholder="Reps" value="${log.reps}" onchange="updateWorkoutSet(${exerciseIndex}, ${setIndex}, 'reps', this.value)" aria-label="Reps done for set ${setIndex + 1}">
+          </div>
+        </div>`;
+    });
+    block.innerHTML = `
+      <div class="fw-bold mb-1"><span class="workout-name">${name}</span> <span class="badge bg-secondary ms-1">${category}</span></div>
+      <div class="text-muted small mb-2">${item.sets} sets × ${item.reps} reps · ${item.rest}s rest between sets</div>
+      ${setsHtml}
     `;
-    workoutContainer.appendChild(row);
+    workoutContainer.appendChild(block);
   });
-  const doneCount = currentWorkout.done.filter(Boolean).length;
-  const total = currentWorkout.items.length;
-  const percent = total ? Math.round((doneCount / total) * 100) : 0;
+  const totalSets = currentWorkout.items.reduce((t, it) => t + it.setLogs.length, 0);
+  const doneSets = currentWorkout.items.reduce((t, it) => t + it.setLogs.filter((s) => s.done).length, 0);
+  const percent = totalSets ? Math.round((doneSets / totalSets) * 100) : 0;
   workoutProgressBar.style.width = percent + "%";
-  workoutProgressText.textContent = doneCount + " of " + total + " done · about " + estimateMinutes(currentWorkout.items) + " min total";
-  if (doneCount === total && total > 0 && workoutDoneMsg) {
-    workoutDoneMsg.textContent = "Nice work, that is the whole routine done.";
+  workoutProgressText.textContent = doneSets + " of " + totalSets + " sets done · about " + estimateMinutes(currentWorkout.items) + " min total";
+  if (doneSets === totalSets && totalSets > 0 && workoutDoneMsg) {
+    workoutDoneMsg.textContent = "Nice work, that is the whole routine done. Tap Finish Workout to log it.";
   }
 }
 
 function finishWorkout() {
   if (!currentWorkout) return;
-  if (workoutDoneMsg) workoutDoneMsg.textContent = "Workout finished: " + currentWorkout.name + ". Well done.";
+  // Log the session: only sets with a weight or reps recorded, so empty rows do not count
+  const entries = currentWorkout.items.map((item) => ({
+    exerciseId: item.exerciseId,
+    name: exerciseName(item.exercise),
+    sets: item.setLogs
+      .filter((log) => log.done || log.weight !== "" || log.reps !== "")
+      .map((log) => ({ weight: parseFloat(log.weight) || 0, reps: parseInt(log.reps, 10) || 0, done: log.done }))
+  })).filter((entry) => entry.sets.length > 0);
+  if (entries.length > 0) {
+    workoutLog.push({ date: new Date().toISOString(), routineName: currentWorkout.name, entries });
+    saveWorkoutLog();
+    renderProgress();
+  }
+  if (workoutDoneMsg) workoutDoneMsg.textContent = "Workout finished and logged: " + currentWorkout.name + ". See Your Progress below.";
   currentWorkout = null;
 }
 
@@ -663,19 +778,17 @@ function closeWorkout() {
   currentWorkout = null;
 }
 
-function startRestTimer() {
-  if (restTimerId) {
-    stopRestTimer();
-    return;
-  }
-  restSecondsLeft = 60;
+function startRestTimer(seconds) {
+  const length = seconds || 90;
+  if (restTimerId) stopRestTimer();
+  restSecondsLeft = length;
   restTimerBtn.textContent = "Stop rest";
-  restTimerText.textContent = "Rest: 60s";
+  restTimerText.textContent = "Rest: " + restSecondsLeft + "s";
   restTimerId = setInterval(() => {
     restSecondsLeft -= 1;
     if (restSecondsLeft <= 0) {
       stopRestTimer();
-      restTimerText.textContent = "Rest over, next exercise.";
+      restTimerText.textContent = "Rest over, next set.";
       return;
     }
     restTimerText.textContent = "Rest: " + restSecondsLeft + "s";
@@ -685,8 +798,100 @@ function startRestTimer() {
 function stopRestTimer() {
   if (restTimerId) clearInterval(restTimerId);
   restTimerId = null;
-  if (restTimerBtn) restTimerBtn.textContent = "Start 60s rest";
+  if (restTimerBtn) restTimerBtn.textContent = "Start 90s rest";
   if (restTimerText) restTimerText.textContent = "";
+}
+
+// ---- Progress history ----
+
+function saveWorkoutLog() {
+  try {
+    localStorage.setItem("fullbodyWorkoutLog", JSON.stringify(workoutLog));
+  } catch (error) {
+    // History just lasts for this visit if storage is blocked
+  }
+}
+
+function loadWorkoutLog() {
+  try {
+    workoutLog = JSON.parse(localStorage.getItem("fullbodyWorkoutLog") || "[]");
+  } catch (error) {
+    workoutLog = [];
+  }
+}
+
+function renderProgress() {
+  if (!progressContainer || !recentSessionsContainer) return;
+  if (workoutLog.length === 0) {
+    if (progressSummary) progressSummary.textContent = "";
+    progressContainer.innerHTML = '<p class="text-muted">No workouts logged yet. Start a routine and finish it to log your first session.</p>';
+    recentSessionsContainer.innerHTML = '<p class="text-muted">No workouts logged yet.</p>';
+    return;
+  }
+  let totalSets = 0;
+  let totalVolume = 0;
+  workoutLog.forEach((session) => {
+    session.entries.forEach((entry) => {
+      entry.sets.forEach((set) => {
+        totalSets += 1;
+        totalVolume += (set.weight || 0) * (set.reps || 0);
+      });
+    });
+  });
+  if (progressSummary) {
+    progressSummary.textContent = workoutLog.length + " workout" + (workoutLog.length === 1 ? "" : "s") + " logged · " +
+      totalSets + " sets · " + Math.round(totalVolume).toLocaleString() + " kg total volume";
+  }
+
+  // Per exercise: best weight, last session, and recent history
+  const byExercise = {};
+  workoutLog.forEach((session) => {
+    session.entries.forEach((entry) => {
+      if (!byExercise[entry.exerciseId]) {
+        byExercise[entry.exerciseId] = { name: entry.name, history: [] };
+      }
+      entry.sets.forEach((set) => {
+        byExercise[entry.exerciseId].history.push({ date: session.date, weight: set.weight || 0, reps: set.reps || 0 });
+      });
+    });
+  });
+  progressContainer.innerHTML = "";
+  Object.values(byExercise)
+    .sort((a, b) => b.history.length - a.history.length)
+    .forEach((record) => {
+      const best = record.history.reduce((max, h) => Math.max(max, h.weight || 0), 0);
+      const last = record.history[record.history.length - 1];
+      const recent = record.history.slice(-3).reverse();
+      const card = document.createElement("div");
+      card.className = "border rounded p-3 mb-2";
+      card.innerHTML = `
+        <div class="fw-bold">${record.name}</div>
+        <div class="text-muted small">Best: ${best} kg · Last: ${last.weight} kg × ${last.reps} reps · ${record.history.length} sets logged</div>
+        <div class="small mt-1">${recent.map((h) => new Date(h.date).toLocaleDateString() + ": " + h.weight + " kg × " + h.reps).join("<br>")}</div>
+      `;
+      progressContainer.appendChild(card);
+    });
+
+  // Recent sessions, newest first
+  recentSessionsContainer.innerHTML = "";
+  workoutLog.slice(-5).reverse().forEach((session) => {
+    const sets = session.entries.reduce((t, e) => t + e.sets.length, 0);
+    const volume = session.entries.reduce((t, e) => t + e.sets.reduce((s, set) => s + (set.weight || 0) * (set.reps || 0), 0), 0);
+    const row = document.createElement("div");
+    row.className = "border rounded p-3 mb-2";
+    row.innerHTML = `
+      <div class="fw-bold">${session.routineName}</div>
+      <div class="text-muted small">${new Date(session.date).toLocaleString()} · ${sets} sets · ${Math.round(volume).toLocaleString()} kg volume</div>
+      <div class="small mt-1">${session.entries.map((e) => e.name + ": " + e.sets.map((s) => s.weight + " kg × " + s.reps).join(", ")).join("<br>")}</div>
+    `;
+    recentSessionsContainer.appendChild(row);
+  });
+}
+
+function clearHistory() {
+  workoutLog = [];
+  saveWorkoutLog();
+  renderProgress();
 }
 
 // Routine buttons
@@ -700,5 +905,8 @@ const closeWorkoutBtn = document.getElementById("closeWorkoutBtn");
 if (closeWorkoutBtn) closeWorkoutBtn.addEventListener("click", closeWorkout);
 const finishWorkoutBtn = document.getElementById("finishWorkoutBtn");
 if (finishWorkoutBtn) finishWorkoutBtn.addEventListener("click", finishWorkout);
-if (restTimerBtn) restTimerBtn.addEventListener("click", startRestTimer);
+if (restTimerBtn) restTimerBtn.addEventListener("click", () => startRestTimer(90));
 if (routineNameInput) routineNameInput.addEventListener("input", saveDraft);
+if (routineDayInput) routineDayInput.addEventListener("change", saveDraft);
+const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+if (clearHistoryBtn) clearHistoryBtn.addEventListener("click", clearHistory);
